@@ -1,0 +1,59 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: marlon
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: ${APPLICATION_NAME}
+    container_name: ${APPLICATION_NAME}-app
+    environment:
+      - TZ=${TZ}
+    # restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./${APPLICATION_NAME_FOLDER}:/var/www
+    networks:
+      - backend
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "${DB_PORT}:3306"
+    container_name: ${APPLICATION_NAME}-db
+    # restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+      TZ: ${TZ}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: ${APPLICATION_NAME}-nginx
+    environment:
+      - TZ=${TZ}
+    # restart: unless-stopped
+    ports:
+      - ${APPLICATION_PORT}:80
+    volumes:
+      - ./${APPLICATION_NAME_FOLDER}:/var/www
+      - ./docker-compose/nginx/logs:/var/log/nginx
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - backend
+volumes:
+  mysql_data:
+
+networks:
+  backend:
+    driver: bridge
