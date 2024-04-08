@@ -1,1 +1,1 @@
-/docker-compose/nginx/logs/*
+/docker-compose/nginx/logs/error.log
